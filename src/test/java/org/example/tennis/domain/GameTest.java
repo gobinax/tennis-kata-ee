@@ -1,5 +1,6 @@
 package org.example.tennis.domain;
 
+import org.assertj.core.api.ThrowableAssert;
 import org.example.tennis.domain.game.Game;
 import org.example.tennis.domain.game.RegularGame;
 import org.junit.jupiter.api.Test;
@@ -103,5 +104,42 @@ public class GameTest {
         // THEN
         assertThat(game.printScore())
                 .isEqualTo(expectedPrintedScore);
+    }
+
+    private static Stream<Arguments> valid_restore_data() {
+        Player A = new Player("A");
+        Player B = new Player("B");
+        return Stream.of(
+                arguments(Game.of(false, A, B, 3, 0), "40-0"),
+                arguments(Game.of(false, A, B, 8, 8), "Deuce"),
+                arguments(Game.of(false, A, B, 9, 8), "Advantage: A"),
+                arguments(Game.of(false, A, B, 8, 9), "Advantage: B"),
+                arguments(Game.of(false, A, B, 4, 2), "Game: A"),
+                arguments(Game.of(false, A, B, 2, 4), "Game: B"),
+                arguments(Game.of(true, A, B, 0, 5), "0-5"),
+                arguments(Game.of(true, A, B, 8, 8), "8-8"),
+                arguments(Game.of(true, A, B, 9, 8), "9-8"),
+                arguments(Game.of(true, A, B, 8, 9), "8-9"),
+                arguments(Game.of(true, A, B, 6, 4), "Game: A"),
+                arguments(Game.of(true, A, B, 4, 6), "Game: B")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("valid_restore_data")
+    void should_restore_game_from_data(Game game, String expectedScore) {
+        assertThat(game.printScore()).isEqualTo(expectedScore);
+    }
+
+    @Test
+    void should_not_restore_game_from_invalid_data() {
+        assertThatThrownBy(() -> Game.of(false, new Player("A"), new Player("B"), 5, 2))
+                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> Game.of(false, new Player("A"), new Player("B"), 2, 5))
+                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> Game.of(true, new Player("A"), new Player("B"), 9, 6))
+                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> Game.of(true, new Player("A"), new Player("B"), 6, 9))
+                .isInstanceOf(IllegalStateException.class);
     }
 }

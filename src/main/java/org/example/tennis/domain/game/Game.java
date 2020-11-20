@@ -19,6 +19,14 @@ public abstract class Game {
         players = Arrays.asList(player1, player2);
     }
 
+    public static Game of(boolean tieBreak, Player player1, Player player2, int gamePoints1, int gamePoints2) {
+        Game game = tieBreak ? new TieBreak(player1, player2) : new RegularGame(player1, player2);
+        game.points[0] = gamePoints1;
+        game.points[1] = gamePoints2;
+        if(game.hasInvalidState()) throw new IllegalStateException();
+        return game;
+    }
+
     ////////////////
     // PUBLIC API //
     ////////////////
@@ -56,6 +64,24 @@ public abstract class Game {
     @Override
     public String toString() {
         return printScore();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Game game = (Game) o;
+
+        if (!players.equals(game.players)) return false;
+        return Arrays.equals(points, game.points);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = players.hashCode();
+        result = 31 * result + Arrays.hashCode(points);
+        return result;
     }
 
     ///////////////////////////////
@@ -111,5 +137,9 @@ public abstract class Game {
     private void increasePoints(int playerIdx) {
         points[playerIdx]++;
     }
+
+    private boolean hasInvalidState() {
+        return (points[0] > nbPointToWin() || points[1] > nbPointToWin()) && Math.abs(points[0] - points[1]) > 2;
+    };
 
 }

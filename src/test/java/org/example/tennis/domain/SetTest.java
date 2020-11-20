@@ -142,4 +142,39 @@ public class SetTest {
         }
     }
 
+    private static Stream<Arguments> valid_restore_data() {
+        Player A = new Player("A");
+        Player B = new Player("B");
+        return Stream.of(
+                arguments(Set.of(A, B, 6, 5, 3, 0), "6-5|40-0"),
+                arguments(Set.of(A, B, 6, 6, 5, 0), "6-6|5-0"),
+                arguments(Set.of(A, B, 7, 5, 0, 0), "7-5|0-0"),
+                arguments(Set.of(A, B, 5, 7, 0, 0), "5-7|0-0"),
+                arguments(Set.of(A, B, 7, 6, 0, 0), "7-6|0-0"),
+                arguments(Set.of(A, B, 6, 7, 0, 0), "6-7|0-0")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("valid_restore_data")
+    void should_restore_set_from_data(Set set, String expectedScore) {
+        assertThat(set.printScore() + "|" + set.currentGame().printScore()).isEqualTo(expectedScore);
+    }
+
+    @Test
+    void should_not_restore_set_from_invalid_data() {
+        assertThatThrownBy(() -> Set.of(A, B, 7, 4, 0, 0))
+                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> Set.of(A, B, 4, 7, 0, 0))
+                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> Set.of(A, B, 8, 6, 0, 0))
+                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> Set.of(A, B, 6, 8, 0, 0))
+                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> Set.of(A, B, 7, 5, 1, 0))
+                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> Set.of(A, B, 5, 7, 1, 0))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
 }

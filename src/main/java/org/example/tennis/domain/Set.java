@@ -26,6 +26,16 @@ public class Set {
         currentGame = new RegularGame(player1, player2);
     }
 
+    public static Set of(Player player1, Player player2, int gameCount1, int gameCount2, int gamePoints1, int gamePoints2) {
+        Set set = new Set(player1, player2);
+        set.gameCount[0] = gameCount1;
+        set.gameCount[1] = gameCount2;
+        if (set.hasInvalidState()) throw new IllegalStateException();
+        if (set.winner().isPresent() && !(gamePoints1 == 0 && gamePoints2 == 0)) throw new IllegalStateException();
+        set.currentGame = Game.of(set.isTieBreakNecessary(), player1, player2, gamePoints1, gamePoints2);
+        return set;
+    }
+
     ////////////////
     // PUBLIC API //
     ////////////////
@@ -65,6 +75,26 @@ public class Set {
     @Override
     public String toString() {
         return printScore();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Set set = (Set) o;
+
+        if (!players.equals(set.players)) return false;
+        if (!Arrays.equals(gameCount, set.gameCount)) return false;
+        return currentGame.equals(set.currentGame);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = players.hashCode();
+        result = 31 * result + Arrays.hashCode(gameCount);
+        result = 31 * result + currentGame.hashCode();
+        return result;
     }
 
     /////////////////////
@@ -123,5 +153,10 @@ public class Set {
 
     private boolean isTieBreakNecessary() {
         return gameCount[0] == NB_GAMES_TO_WIN && gameCount[1] == NB_GAMES_TO_WIN;
+    }
+
+    private boolean hasInvalidState() {
+        return gameCount[0] > NB_GAMES_TO_WIN + 1 || gameCount[1] > NB_GAMES_TO_WIN + 1
+                || (gameCount[0] == NB_GAMES_TO_WIN + 1 || gameCount[1] == NB_GAMES_TO_WIN + 1) && Math.abs(gameCount[0] - gameCount[1]) > 2;
     }
 }
